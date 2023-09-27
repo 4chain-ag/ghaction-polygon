@@ -11,6 +11,9 @@ env:
   GO_VERSION: '1.20'
   MAIN_FILE: 'cmd/main.go'
 
+permissions:
+  contents: write
+
 jobs:
   generete:
     runs-on: ubuntu-latest
