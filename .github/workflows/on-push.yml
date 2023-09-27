@@ -20,6 +20,13 @@ jobs:
         with:
           go-version: ${{env.GO_VERSION}}
       - run: go mod tidy
-      - name: debug
-        run: git status
-
+      - name: "Commit & Push"
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "chore: update generated files"
+          # Determines the way the action fills missing author name and email. Three options are available:
+          # - github_actor -> UserName <UserName@users.noreply.github.com>
+          # - user_info -> Your Display Name <your-actual@email.com>
+          # - github_actions -> github-actions <email associated with the github logo>
+          # Default: github_actor
+          default_author: user_info
