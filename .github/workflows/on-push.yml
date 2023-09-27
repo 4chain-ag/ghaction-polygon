@@ -1,0 +1,26 @@
+name: "On push changes"
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+
+# TODO make inputs from this
+env:
+  GO_VERSION: '1.20'
+  MAIN_FILE: 'cmd/main.go'
+
+jobs:
+  generete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{env.GO_VERSION}}
+      - name: Go Generate
+        run: go generate ${{ env.MAIN_FILE }}
+      - name: debug
+        run: git status
+
