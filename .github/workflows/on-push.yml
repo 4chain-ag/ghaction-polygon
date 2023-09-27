@@ -19,8 +19,8 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: ${{env.GO_VERSION}}
-      - name: Go Generate
-        run: go generate ${{ env.MAIN_FILE }}
+      - name: go mod tidy
+        run: go mode tidy
       - name: debug
         run: git status
 
