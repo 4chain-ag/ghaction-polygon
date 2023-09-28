@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 jobs:
-  generete:
+  generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
