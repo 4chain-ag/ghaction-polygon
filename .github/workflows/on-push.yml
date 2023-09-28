@@ -26,7 +26,11 @@ jobs:
       - name: "Commit & Push"
         uses: EndBug/add-and-commit@v9
         with:
-          message: "chore: update generated files"
+          message: |
+            chore: update generated files
+            
+            
+            request-checks: true
           # Determines the way the action fills missing author name and email. Three options are available:
           # - github_actor -> UserName <UserName@users.noreply.github.com>
           # - user_info -> Your Display Name <your-actual@email.com>
