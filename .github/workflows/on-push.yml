@@ -41,6 +41,13 @@ jobs:
               document-start:
                 present: false
                 level: warning
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: yamllint-logfile
+          path: ${{ steps.yaml-lint.outputs.logfile }}
+      - run: rm ${{ steps.yaml-lint.outputs.logfile }}
+
       - name: "Commit & Push"
         id: commit
         if: always()
