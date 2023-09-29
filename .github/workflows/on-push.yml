@@ -28,7 +28,6 @@ jobs:
       - name: Go Module tidy
         run: go mod tidy
       - name: Run yaml linter
-        if: false
         uses: ibiqlik/action-yamllint@v3.1
         with:
           config_data: |
@@ -41,7 +40,7 @@ jobs:
               document-start:
                 present: false
                 level: warning
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: yamllint-logfile
