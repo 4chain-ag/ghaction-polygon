@@ -46,7 +46,10 @@ jobs:
         with:
           name: yamllint-logfile
           path: ${{ steps.yaml-lint.outputs.logfile }}
-      - run: rm ${{ steps.yaml-lint.outputs.logfile }}
+
+      - name: clean yaml-lint log
+        if: always()
+        run: rm ${{ steps.yaml-lint.outputs.logfile }}
 
       - name: "Commit & Push"
         id: commit
