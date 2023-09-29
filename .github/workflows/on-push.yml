@@ -44,9 +44,9 @@ jobs:
       - name: Go Module tidy
         run: go mod tidy
 
-     ############
-     # YAML lint
-     ############
+      ############
+      # YAML lint
+      ############
       - name: Run yaml linter
         id: yaml-lint
         uses: ibiqlik/action-yamllint@v3.1
@@ -117,3 +117,17 @@ jobs:
           skip-cache: false
           skip-pkg-cache: false
           skip-build-cache: false
+
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    needs: [code-style]
+    if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{env.GO_VERSION}}
+          cache: false
+      - name: Go Build
+        run: go build -v ./...
