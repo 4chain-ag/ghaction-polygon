@@ -11,5 +11,5 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: "Release"
+      - name:     "Release"
         run: echo "RELEASING ..."
