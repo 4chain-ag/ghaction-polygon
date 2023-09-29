@@ -169,10 +169,12 @@ jobs:
           path: coverage.txt
 
       - name: Update code coverage
-        if: always() && secrets.CODECOV_TOKEN != ''
+        if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v3.1.4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
           fail_ci_if_error: false # optional (default = false)
           verbose: true # optional (default = false)
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
