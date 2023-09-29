@@ -28,6 +28,7 @@ jobs:
       - name: Go Module tidy
         run: go mod tidy
       - name: Run yaml linter
+        id: yaml-lint
         uses: ibiqlik/action-yamllint@v3.1
         with:
           config_data: |
