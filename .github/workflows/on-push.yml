@@ -51,6 +51,18 @@ jobs:
         if: always()
         run: rm ${{ steps.yaml-lint.outputs.logfile }}
 
+      - name: Load LineLint configuration
+        run: curl https://raw.githubusercontent.com/fernandrone/linelint/master/.linelint.yml --output .linelint.yml
+
+      - name: Linelint
+        uses: fernandrone/linelint@master
+        id: linelint
+        if: always()
+
+      - name: clean Linelint config
+        if: always()
+        run: rm .linelint.yml
+
       - name: "Commit & Push"
         id: commit
         if: always()
