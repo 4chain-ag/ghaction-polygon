@@ -196,6 +196,8 @@ jobs:
     name: "Notify"
     runs-on: ubuntu-latest
     needs: [ code-style, lint, compile, test]
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
       - name: "Slack notification is skipped because secret SLACK_WEBHOOK_URL is not set"
@@ -204,23 +206,45 @@ jobs:
       - name: "Notify success"
         if: ${{ !contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
         run: echo 'It is a success'
+      - uses: actions/github-script@v6
+        id: failed-checks
+        if: ${{ contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
+        with:
+          script: |
+            const needs = ${{ toJSON(needs) }}
+            return Object.entries(needs)
+                  .filter(([_,v]) => v.result === 'failure')
+                  .map(([key]) => key)
+                  .join(', ')
+          result-encoding: string
+          debug: true
       - name: "Notify failure"
         if: ${{ contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "GitHub Action build result: ${{ job.status }}\n${{ env.BUILD_URL }}",
-              "blocks": [
+              "attachments": [
                 {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "GitHub Action build result: ${{ job.status }}\n${{ env.BUILD_URL }}"
-                  }
+                  "fallback": "${{ github.repository }} Checks Failed!",
+                  "color": "danger",
+                  "title": "Checks Failed!",
+                  "title_link": "${{ env.BUILD_URL }}",
+                  "text": "Checks ${{steps.failed-checks.outputs.result}} failed!",
+                  "fields": [
+                    {
+                      "title": "Project",
+                      "value": "${{ github.repository }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref_name }}",
+                      "short": true
+                    }
+                  ]
                 }
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
