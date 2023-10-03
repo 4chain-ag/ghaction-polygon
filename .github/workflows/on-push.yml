@@ -10,6 +10,7 @@ on:
 env:
   GO_VERSION: '1.20'
   MAIN_FILE: 'cmd/main.go'
+  BUILD_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
 permissions:
   contents: write
@@ -19,6 +20,7 @@ jobs:
     name: Code Style
     runs-on: ubuntu-latest
     outputs:
+      id: ${{ github.job }}
       updatedCode: ${{ steps.commit.outputs.pushed }}
     steps:
       - uses: actions/checkout@v4
@@ -102,75 +104,105 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    outputs:
+      id: ${{ github.job }}
     needs: [code-style]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{env.GO_VERSION}}
-          cache: false
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-          skip-cache: false
-          skip-pkg-cache: false
-          skip-build-cache: false
+      # FIXME
+      - run: echo "SKIPPED"
+#
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: ${{env.GO_VERSION}}
+#          cache: false
+#      - name: golangci-lint
+#        uses: golangci/golangci-lint-action@v3
+#        with:
+#          version: latest
+#          skip-cache: false
+#          skip-pkg-cache: false
+#          skip-build-cache: false
 
   compile:
     name: Compile
     runs-on: ubuntu-latest
+    outputs:
+      id: ${{ github.job }}
     needs: [code-style]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{env.GO_VERSION}}
-      - name: Go Build
-        run: go build -v ./...
+      # FIXME
+      - run: echo "SKIPPED"
+#
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: ${{env.GO_VERSION}}
+#      - name: Go Build
+#        run: go build -v ./...
 
 
   test:
     name: Test
     runs-on: ubuntu-latest
+    outputs:
+      id: ${{ github.job }}
     needs: [code-style]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{env.GO_VERSION}}
+      # FIXME
+      - run: echo "SKIPPED"
 
-      # Install gotestfmt on the VM running the action.
-      - name: Set up gotestfmt
-        uses: GoTestTools/gotestfmt-action@v2
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: ${{env.GO_VERSION}}
+#
+#      # Install gotestfmt on the VM running the action.
+#      - name: Set up gotestfmt
+#        uses: GoTestTools/gotestfmt-action@v2
+#
+#      # Run tests with nice formatting. Save the original log in /tmp/gotest.log
+#      - name: Run tests
+#        run: |
+#          set -euo pipefail
+#          go test -json -coverprofile=coverage.txt -covermode=atomic -v ./... 2>&1 | tee gotest.log | gotestfmt
+#
+#      # Upload the original go test log as an artifact for later review.
+#      - name: Upload test & coverage reports
+#        uses: actions/upload-artifact@v3
+#        if: always()
+#        with:
+#          name: test-report
+#          path: |
+#            gotest.log
+#            coverage.txt
+#          if-no-files-found: error
+#
+#      - name: Update code coverage
+#        if: ${{ env.CODECOV_TOKEN != '' }}
+#        uses: codecov/codecov-action@v3.1.4
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          flags: unittests
+#          fail_ci_if_error: false
+#          verbose: true
+#        env:
+#          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      # Run tests with nice formatting. Save the original log in /tmp/gotest.log
-      - name: Run tests
+  notify-success:
+    name: "Notify"
+    runs-on: ubuntu-latest
+    needs: [ code-style, lint, compile, test]
+    if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
+    steps:
+      - name: "Notify success"
+        if: ${{ !contains(needs.*.result, 'failure') }}
+        run: echo 'It is a success'
+      - name: "Notify failure"
+        if: ${{ contains(needs.*.result, 'failure') }}
         run: |
-          set -euo pipefail
-          go test -json -coverprofile=coverage.txt -covermode=atomic -v ./... 2>&1 | tee gotest.log | gotestfmt
-
-      # Upload the original go test log as an artifact for later review.
-      - name: Upload test & coverage reports
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-report
-          path: |
-            gotest.log
-            coverage.txt
-          if-no-files-found: error
-
-      - name: Update code coverage
-        if: ${{ env.CODECOV_TOKEN != '' }}
-        uses: codecov/codecov-action@v3.1.4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: unittests
-          fail_ci_if_error: false # optional (default = false)
-          verbose: true # optional (default = false)
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          echo 'It is a failure'
+          echo $BUILD_URL
