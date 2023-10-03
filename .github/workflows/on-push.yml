@@ -198,11 +198,29 @@ jobs:
     needs: [ code-style, lint, compile, test]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
+      - name: "Slack notification is skipped because secret SLACK_WEBHOOK_URL is not set"
+        if: ${{ env.SLACK_WEBHOOK_URL == '' }}
+        run: echo "::notice::Slack notification is skipped because secret SLACK_WEBHOOK_URL is not set"
       - name: "Notify success"
-        if: ${{ !contains(needs.*.result, 'failure') }}
+        if: ${{ !contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
         run: echo 'It is a success'
       - name: "Notify failure"
-        if: ${{ contains(needs.*.result, 'failure') }}
-        run: |
-          echo 'It is a failure'
-          echo $BUILD_URL
+        if: ${{ contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "GitHub Action build result: ${{ job.status }}\n${{ env.BUILD_URL }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "GitHub Action build result: ${{ job.status }}\n${{ env.BUILD_URL }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
