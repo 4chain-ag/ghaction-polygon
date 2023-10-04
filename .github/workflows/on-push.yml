@@ -81,7 +81,8 @@ jobs:
       # linelint - add new lines at the end of files if needed
       ############################################################
 
-      # TODO: run a command to do so, or adjust (modify) linelint action for that
+      # TODO: run a command to do so,
+      # TODO: or adjust (modify) linelint action for that, so it won't need config file
 
       ########################
       # lint & fix code style
@@ -109,21 +110,18 @@ jobs:
     needs: [code-style]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
-      # FIXME
-      - run: echo "SKIPPED"
-#
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: ${{env.GO_VERSION}}
-#          cache: false
-#      - name: golangci-lint
-#        uses: golangci/golangci-lint-action@v3
-#        with:
-#          version: latest
-#          skip-cache: false
-#          skip-pkg-cache: false
-#          skip-build-cache: false
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{env.GO_VERSION}}
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          skip-cache: false
+          skip-pkg-cache: false
+          skip-build-cache: false
 
   compile:
     name: Compile
@@ -133,15 +131,12 @@ jobs:
     needs: [code-style]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
-      # FIXME
-      - run: echo "SKIPPED"
-#
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: ${{env.GO_VERSION}}
-#      - name: Go Build
-#        run: go build -v ./...
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{env.GO_VERSION}}
+      - name: Go Build
+        run: go build -v ./...
 
 
   test:
@@ -152,50 +147,47 @@ jobs:
     needs: [code-style]
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
-      # FIXME
-      - run: echo "SKIPPED"
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{env.GO_VERSION}}
 
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: ${{env.GO_VERSION}}
-#
-#      # Install gotestfmt on the VM running the action.
-#      - name: Set up gotestfmt
-#        uses: GoTestTools/gotestfmt-action@v2
-#
-#      # Run tests with nice formatting. Save the original log in /tmp/gotest.log
-#      - name: Run tests
-#        run: |
-#          set -euo pipefail
-#          go test -json -coverprofile=coverage.txt -covermode=atomic -v ./... 2>&1 | tee gotest.log | gotestfmt
-#
-#      # Upload the original go test log as an artifact for later review.
-#      - name: Upload test & coverage reports
-#        uses: actions/upload-artifact@v3
-#        if: always()
-#        with:
-#          name: test-report
-#          path: |
-#            gotest.log
-#            coverage.txt
-#          if-no-files-found: error
-#
-#      - name: Update code coverage
-#        if: ${{ env.CODECOV_TOKEN != '' }}
-#        uses: codecov/codecov-action@v3.1.4
-#        with:
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          flags: unittests
-#          fail_ci_if_error: false
-#          verbose: true
-#        env:
-#          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      # Install gotestfmt on the VM running the action.
+      - name: Set up gotestfmt
+        uses: GoTestTools/gotestfmt-action@v2
 
-  notify-success:
+      # Run tests with nice formatting. Save the original log in /tmp/gotest.log
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          go test -json -coverprofile=coverage.txt -covermode=atomic -v ./... 2>&1 | tee gotest.log | gotestfmt
+
+      # Upload the original go test log as an artifact for later review.
+      - name: Upload test & coverage reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-report
+          path: |
+            gotest.log
+            coverage.txt
+          if-no-files-found: error
+
+      - name: Update code coverage
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v3.1.4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  notify:
     name: "Notify"
     runs-on: ubuntu-latest
-    needs: [ code-style, lint, compile, test]
+    needs: [code-style, lint, compile, test]
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
@@ -203,9 +195,17 @@ jobs:
       - name: "Slack notification is skipped because secret SLACK_WEBHOOK_URL is not set"
         if: ${{ env.SLACK_WEBHOOK_URL == '' }}
         run: echo "::notice::Slack notification is skipped because secret SLACK_WEBHOOK_URL is not set"
-      - name: "Notify success"
-        if: ${{ !contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
-        run: echo 'It is a success'
+
+      - uses: actions/checkout@v3
+      - name: Matching PR
+        id: matching-pr
+        run: |
+          prMsg=$(GH_PAGER=cat gh pr list -H go/pr-workflow-wip --json url,number,title \
+          -q '.[0] | @text "<\(.url//"https://github.com/4chain-ag/ghaction-polygon/pr")|\(.title//"Not Found")>"' \
+          >> $GITHUB_OUTPUT)
+          echo "msg='$prMsg'" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/github-script@v6
         id: failed-checks
         if: ${{ contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
@@ -217,9 +217,44 @@ jobs:
                   .map(([key]) => key)
                   .join(', ')
           result-encoding: string
-          debug: true
+      - name: "Notify success"
+        if: ${{ steps.failed-checks.outputs.result == '' && env.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "fallback": "${{ github.repository }} Checks Passed!",
+                  "color": "good",
+                  "title": "Checks Passed!",
+                  "title_link": "${{ env.BUILD_URL }}",
+                  "text": "All checks has succeed!",
+                  "fields": [
+                    {
+                      "title": "Project",
+                      "value": "<{{github.server_url}}/{{ github.repository }}|{{ github.repository }}>",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Pull Request",
+                      "value": "${{ steps.matching-pr.outputs.prMsg }}",
+                      "short": false
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
       - name: "Notify failure"
-        if: ${{ contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ steps.failed-checks.outputs.result != '' && env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -234,13 +269,18 @@ jobs:
                   "fields": [
                     {
                       "title": "Project",
-                      "value": "${{ github.repository }}",
+                      "value": "<{{github.server_url}}/{{ github.repository }}|{{ github.repository }}>",
                       "short": true
                     },
                     {
                       "title": "Branch",
                       "value": "${{ github.ref_name }}",
                       "short": true
+                    },
+                    {
+                      "title": "Pull Request",
+                      "value": "${{ steps.matching-pr.outputs.prMsg }}",
+                      "short": false
                     }
                   ]
                 }
