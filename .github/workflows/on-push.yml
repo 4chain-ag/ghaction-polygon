@@ -190,6 +190,7 @@ jobs:
     needs: [code-style, lint, compile, test]
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      REPO_URL: ${{github.server_url}}/${{ github.repository }}
     if: ${{ !cancelled() && needs.code-style.outputs.updatedCode != 'true' }}
     steps:
       - name: "Slack notification is skipped because secret SLACK_WEBHOOK_URL is not set"
@@ -200,10 +201,9 @@ jobs:
       - name: Matching PR
         id: matching-pr
         run: |
-          prMsg=$(GH_PAGER=cat gh pr list -H go/pr-workflow-wip --json url,number,title \
-          -q '.[0] | @text "<\(.url//"https://github.com/4chain-ag/ghaction-polygon/pr")|\(.title//"Not Found")>"' \
-          >> $GITHUB_OUTPUT)
-          echo "msg='$prMsg'" >> $GITHUB_OUTPUT
+          GH_PAGER=cat gh pr list -H ${{ github.ref_name }} --json url,number,title \
+          -q '.[0] | @text "msg=<\(.url//"${{ env.REPO_URL }}/pulls")|\(.title//"Not Found, check the list here.")>"' \
+          >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: actions/github-script@v6
@@ -233,7 +233,7 @@ jobs:
                   "fields": [
                     {
                       "title": "Project",
-                      "value": "<{{github.server_url}}/{{ github.repository }}|{{ github.repository }}>",
+                      "value": "<${{ env.REPO_URL }}|${{ github.repository }}>",
                       "short": true
                     },
                     {
@@ -243,7 +243,7 @@ jobs:
                     },
                     {
                       "title": "Pull Request",
-                      "value": "${{ steps.matching-pr.outputs.prMsg }}",
+                      "value": "${{ steps.matching-pr.outputs.msg }}",
                       "short": false
                     }
                   ]
@@ -269,7 +269,7 @@ jobs:
                   "fields": [
                     {
                       "title": "Project",
-                      "value": "<{{github.server_url}}/{{ github.repository }}|{{ github.repository }}>",
+                      "value": "<${{ env.REPO_URL }}|${{ github.repository }}>",
                       "short": true
                     },
                     {
@@ -279,7 +279,7 @@ jobs:
                     },
                     {
                       "title": "Pull Request",
-                      "value": "${{ steps.matching-pr.outputs.prMsg }}",
+                      "value": "${{ steps.matching-pr.outputs.msg }}",
                       "short": false
                     }
                   ]
