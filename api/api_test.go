@@ -11,6 +11,7 @@ func Test_GetStructArrayByString(t *testing.T) {
 
 func Test_Upload(t *testing.T) {
 	Upload(nil)
+	t.FailNow()
 }
 
 func Test_AnonymousField(t *testing.T) {

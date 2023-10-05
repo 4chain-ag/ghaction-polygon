@@ -31,3 +31,7 @@ func main() {
 		panic(err)
 	}
 }
+
+func FailTheLinter() {
+
+}
