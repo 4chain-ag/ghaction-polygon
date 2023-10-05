@@ -4,7 +4,6 @@ import "testing"
 
 func Test_GetStringByInt(t *testing.T) {
 	GetStringByInt(nil)
-	t.FailNow()
 }
 func Test_GetStructArrayByString(t *testing.T) {
 	GetStructArrayByString(nil)

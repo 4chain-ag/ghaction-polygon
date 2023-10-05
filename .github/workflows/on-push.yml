@@ -207,9 +207,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-
-
-
       - uses: actions/github-script@v6
         id: failed-checks
         if: ${{ contains(needs.*.result, 'failure') && env.SLACK_WEBHOOK_URL != '' }}
@@ -221,6 +218,7 @@ jobs:
                   .map(([key]) => '`' + key + '`')
                   .join(', ')
           result-encoding: string
+
       - name: "Notify success"
         if: ${{ steps.failed-checks.outputs.result == '' && env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v1.24.0
