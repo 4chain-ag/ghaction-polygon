@@ -8,10 +8,11 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   on-push:
-    uses: bactions/workflows/.github/workflows/on-push-go.yml@main
+    uses: bactions/workflows/.github/workflows/on-push-go.yml@lint
     secrets:
       DEPLOY_KEY: ${{ secrets.RELEASE_KEY }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
