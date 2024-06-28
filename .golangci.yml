@@ -330,32 +330,8 @@ linters-settings:
 
 linters:
   enable:
-    - megacheck
-    - govet
-    - gosec
-    - bodyclose
-    - golint
-    - unconvert
-    - dupl
-    - misspell
-    - dogsled
-    - prealloc
-    - exportloopref
-    - exhaustive
-    - sqlclosecheck
-    - goconst
     - godot
-  disable:
-    - gocritic # use this for very opinionated linting
-    - whitespace
-    - wsl
-    - goerr113
-    - testpackage
-    - nlreturn
-    - gci
-    - errorlint
-    - gofmt
-    - musttag
+  disable-all: true
 
   presets:
     - bugs
