@@ -47,6 +47,7 @@ jobs:
           echo "::group::Event"
           echo "GH.event: $(jq . ${{ github.event_path }})"
           echo "::endgroup::"
+
 #  release_default:
 #    uses: bactions/workflows/.github/workflows/release-go-server.yml@norelease
 #    with:
