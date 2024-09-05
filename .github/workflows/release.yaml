@@ -12,7 +12,7 @@ on:
 
 jobs:
   release_default:
-    uses: bactions/workflows/.github/workflows/release-go-server.yml@norelease
+    uses: bactions/workflows/.github/workflows/release-go-server.yml@feat/spv-1030-remove-goreleaser
     with:
       version: ${{ inputs.version || inputs.ref_name }}
       ref: ${{ inputs.ref }}
