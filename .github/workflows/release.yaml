@@ -9,6 +9,11 @@ on:
         required: false
         default: ''
         type: string
+      release:
+        description: 'Release to create'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   release_default:
