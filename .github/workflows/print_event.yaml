@@ -35,7 +35,6 @@ on:
         default: ''
         type: string
 
-
 jobs:
   print_job:
     runs-on: ubuntu-latest
